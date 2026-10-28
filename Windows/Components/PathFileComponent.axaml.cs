@@ -1,4 +1,4 @@
-﻿/*Copyright 2020-2023 dan0v
+﻿/*Copyright 2020-2026 dan0v
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -24,10 +23,10 @@ namespace xdelta3_cross_gui
 {
     public partial class PathFileComponent : UserControl
     {
-        private MainWindow MainParent { get; set; }
-        public string FullPath { get; set; }
-        public string ShortName { get; set; }
-        public int Index { get; set; }
+        private MainWindow? MainParent { get; set; }
+        public string FullPath { get; set; } = "";
+        public string ShortName { get; set; } = "";
+        public int Index { get; set; } = 0;
 
         public bool _Shifted = false;
 
@@ -49,38 +48,38 @@ namespace xdelta3_cross_gui
 
         public PathFileComponent()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
         public PathFileComponent(MainWindow parent, string url, int index, MainWindow.FileCategory fileCategory)
         {
-            this.InitializeComponent();
+            InitializeComponent();
 
-            this.MainParent = parent;
-            this.FullPath = "";
-            this.ShortName = "";
-            this.Index = index;
-            this._FileCategory = fileCategory;
+            MainParent = parent;
+            FullPath = "";
+            ShortName = "";
+            Index = index;
+            _FileCategory = fileCategory;
 
 
             try
             {
-                this.FullPath = Path.GetFullPath(url);
-                this.ShortName = Path.GetFileName(url);
+                FullPath = Path.GetFullPath(url);
+                ShortName = Path.GetFileName(url);
             }
             catch (Exception e) { Debug.WriteLine(e); }
 
-            this.UpdateValues();
+            UpdateValues();
         }
 
         public void UpdateValues()
         {
-            txt_blk_Index.Text = this.Index + "";
-            txt_bx_Path.Text = this.MainParent.Options.ShowFullPaths ? this.FullPath : this.ShortName;
-            chk_IsChecked.IsChecked = this.IsSelected;
+            txt_blk_Index.Text = Index + "";
+            txt_bx_Path.Text = (MainParent?.Config.ShowFullPaths ?? false) ? FullPath : ShortName;
+            chk_IsChecked.IsChecked = IsSelected;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        new public event PropertyChangedEventHandler? PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

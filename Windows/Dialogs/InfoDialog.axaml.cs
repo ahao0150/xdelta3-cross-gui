@@ -1,4 +1,4 @@
-﻿/*Copyright 2020-2023 dan0v
+﻿/*Copyright 2020-2026 dan0v
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@ limitations under the License.*/
 
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 
 namespace xdelta3_cross_gui
 {
@@ -23,19 +22,19 @@ namespace xdelta3_cross_gui
 
         public InfoDialog()
         {
-            this.InitializeComponent();
-            this.Configure();
+            InitializeComponent();
+            Configure();
         }
         private void Configure()
         {
-            this.btn_Dismiss.Click += DismissClicked;
-            this.btn_OpenLicense.Click += OpenLicense;
-            this.btn_OpenNotice.Click += OpenNotice;
+            btn_Dismiss.Click += DismissClicked;
+            btn_OpenLicense.Click += OpenLicense;
+            btn_OpenNotice.Click += OpenNotice;
         }
 
         private void DismissClicked(object? sender, RoutedEventArgs args)
         {
-            this.Close();
+            Close();
         }
 
         private void OpenLicense(object? sender, RoutedEventArgs args)

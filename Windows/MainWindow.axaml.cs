@@ -1,4 +1,4 @@
-/*Copyright 2020-2023 dan0v
+/*Copyright 2020-2026 dan0v
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@ limitations under the License.*/
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using System;
 using System.Collections.Generic;
@@ -124,8 +123,8 @@ namespace xdelta3_cross_gui
                 }
             }
         }
-        public List<PathFileComponent> OldFilesList { get; set; } = new List<PathFileComponent>();
-        public List<PathFileComponent> NewFilesList { get; set; } = new List<PathFileComponent>();
+        public List<PathFileComponent> OldFilesList { get; set; } = [];
+        public List<PathFileComponent> NewFilesList { get; set; } = [];
         private int _OldFilesListCount { get; set; }
         public int OldFilesListCount
         {
@@ -157,27 +156,27 @@ namespace xdelta3_cross_gui
 
         public bool ShowTerminal
         {
-            get => Options.ShowTerminal;
+            get => Config.ShowTerminal;
             set
             {
-                Options.ShowTerminal = value;
+                Config.ShowTerminal = value;
                 try
                 {
                     if (value)
                     {
-                        this.Console.Show();
-                        this.Console.Activate();
-                        this.Console.Focus();
+                        Console.Show();
+                        Console.Activate();
+                        Console.Focus();
                     }
                     else
                     {
-                        this.Console.Hide();
+                        Console.Hide();
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.WriteLine(e);
-                    this._Console = new Console();
+                    _Console = new Console();
                 }
                 OnPropertyChanged();
             }
@@ -190,8 +189,8 @@ namespace xdelta3_cross_gui
         private Console _Console = new();
         public Console Console => _Console;
 
-        private readonly Options _Options = new();
-        public Options Options { get { return this._Options; } }
+        private readonly Config _Config = new();
+        public Config Config { get { return _Config; } }
 
         public enum FileCategory { New, Old };
 
@@ -199,8 +198,8 @@ namespace xdelta3_cross_gui
         {
             Localizer.Instance.LoadLanguage();
             InitializeComponent();
-            this.BindUI();
-            this.Configure();
+            BindUI();
+            Configure();
         }
 
         #region public
@@ -212,8 +211,11 @@ namespace xdelta3_cross_gui
         {
             try
             {
-                string[] url = await this.OpenFileBrowser();
-                this.AddFiles(url, FileCategory.Old);
+                var url = await OpenFileBrowser();
+                if (url != null)
+                {
+                    AddFiles(url, FileCategory.Old);
+                }
             }
             catch (Exception e)
             {
@@ -222,19 +224,19 @@ namespace xdelta3_cross_gui
         }
         public void MoveOldFileUpClicked(object? sender, RoutedEventArgs args)
         {
-            this.MoveFilesUp(FileCategory.Old);
+            MoveFilesUp(FileCategory.Old);
         }
         public void MoveOldFileDownClicked(object? sender, RoutedEventArgs args)
         {
-            this.MoveFilesDown(FileCategory.Old);
+            MoveFilesDown(FileCategory.Old);
         }
         public void DeleteOldFilesClicked(object? sender, RoutedEventArgs args)
         {
-            this.DeleteFiles(FileCategory.Old);
+            DeleteFiles(FileCategory.Old);
         }
         public void ToggleAllOldFilesSelectionClicked(object? sender, RoutedEventArgs args)
         {
-            this.ToggleAllFilesSelection(FileCategory.Old);
+            ToggleAllFilesSelection(FileCategory.Old);
         }
 
         public void NewFilesDropped(object? sender, DragEventArgs args)
@@ -246,8 +248,11 @@ namespace xdelta3_cross_gui
         {
             try
             {
-                string[] url = await this.OpenFileBrowser();
-                this.AddFiles(url, FileCategory.New);
+                var url = await OpenFileBrowser();
+                if (url != null)
+                {
+                    AddFiles(url, FileCategory.New);
+                }
 
             }
             catch (Exception e)
@@ -257,34 +262,34 @@ namespace xdelta3_cross_gui
         }
         public void MoveNewFileUpClicked(object? sender, RoutedEventArgs args)
         {
-            this.MoveFilesUp(FileCategory.New);
+            MoveFilesUp(FileCategory.New);
         }
         public void MoveNewFileDownClicked(object? sender, RoutedEventArgs args)
         {
-            this.MoveFilesDown(FileCategory.New);
+            MoveFilesDown(FileCategory.New);
         }
         public void DeleteNewFilesClicked(object? sender, RoutedEventArgs args)
         {
-            this.DeleteFiles(FileCategory.New);
+            DeleteFiles(FileCategory.New);
         }
         public void ToggleAllNewFilesSelectionClicked(object? sender, RoutedEventArgs args)
         {
-            this.ToggleAllFilesSelection(FileCategory.New);
+            ToggleAllFilesSelection(FileCategory.New);
         }
 
         public void ReloadFiles(FileCategory category, bool forceReloadContents = false)
         {
-            List<PathFileComponent> components = this.NewFilesList;
+            List<PathFileComponent> components = NewFilesList;
             StackPanel sp = sp_NewFilesDisplay;
 
             if (category == FileCategory.New)
             {
-                components = this.NewFilesList;
+                components = NewFilesList;
                 sp = sp_NewFilesDisplay;
             }
             else if (category == FileCategory.Old)
             {
-                components = this.OldFilesList;
+                components = OldFilesList;
                 sp = sp_OldFilesDisplay;
             }
 
@@ -302,15 +307,9 @@ namespace xdelta3_cross_gui
 
             sp.Children.AddRange(components);
         }
-
-        public void SaveSettingsClicked(object? sender, RoutedEventArgs args)
-        {
-            this.Options.SaveCurrent();
-        }
         public void ResetDefaultsClicked(object? sender, RoutedEventArgs args)
         {
-            this.Options.ResetToDefault();
-            //this.Options.SaveCurrent();
+            Config.ResetToDefault();
         }
 
         public void OpenInfoClicked(object? sender, RoutedEventArgs args)
@@ -322,10 +321,10 @@ namespace xdelta3_cross_gui
         public void GoClicked(object? sender, RoutedEventArgs args)
         {
             bool failed = false;
-            List<string> missingOldFiles = new List<string>();
-            List<string> missingNewFiles = new List<string>();
+            List<string> missingOldFiles = [];
+            List<string> missingNewFiles = [];
 
-            foreach (PathFileComponent component in this.OldFilesList)
+            foreach (PathFileComponent component in OldFilesList)
             {
                 if (!File.Exists(component.FullPath))
                 {
@@ -334,7 +333,7 @@ namespace xdelta3_cross_gui
                 }
             }
 
-            foreach (PathFileComponent component in this.NewFilesList)
+            foreach (PathFileComponent component in NewFilesList)
             {
                 if (!File.Exists(component.FullPath))
                 {
@@ -343,29 +342,28 @@ namespace xdelta3_cross_gui
                 }
             }
 
-            if (!this.Options.Validate())
+            if (!Config.Validate())
             {
                 failed = true;
             }
 
             if (failed)
             {
-                ErrorDialog dialog = new ErrorDialog(missingOldFiles, missingNewFiles);
+                ErrorDialog dialog = new(missingOldFiles, missingNewFiles);
                 dialog.Show();
                 dialog.Topmost = true;
-                this.AlreadyBusy = false;
+                AlreadyBusy = false;
             }
             else
             {
-                PatchCreator patcher = new PatchCreator(this);
-                this.AlreadyBusy = true;
-                patcher.CreateReadme();
-                patcher.CopyNotice();
-                if (this.Options.CopyExecutables)
+                AlreadyBusy = true;
+                PatchCreator.Instance.CreateReadme();
+                PatchCreator.Instance.CopyNotice();
+                if (Config.CopyExecutables)
                 {
-                    patcher.CopyExecutables();
+                    PatchCreator.Instance.CopyExecutables();
                 }
-                patcher.CreatePatchingBatchFiles();
+                PatchCreator.Instance.CreatePatchingBatchFiles();
             }
         }
 
@@ -373,10 +371,10 @@ namespace xdelta3_cross_gui
         {
             try
             {
-                string url = await this.OpenFolderBrowser();
+                string? url = await OpenFolderBrowser();
                 if (!string.IsNullOrEmpty(url))
                 {
-                    this.Options.PatchFileDestination = url;
+                    Config.PatchFileDestination = url;
                 }
             }
             catch (Exception e)
@@ -387,8 +385,8 @@ namespace xdelta3_cross_gui
 
         public void UseShortNamesChecked(object? sender, RoutedEventArgs args)
         {
-            this.ReloadFiles(FileCategory.New, true);
-            this.ReloadFiles(FileCategory.Old, true);
+            ReloadFiles(FileCategory.New, true);
+            ReloadFiles(FileCategory.Old, true);
         }
 
         public void SortListInPlaceByIndex(List<PathFileComponent> list)
@@ -396,7 +394,7 @@ namespace xdelta3_cross_gui
             list.Sort((x, y) => x.Index.CompareTo(y.Index));
         }
 
-        public void ChangeLanguage(string language)
+        public void ChangeLanguage(string? language)
         {
             if (language == null || !Localizer.Languages.ContainsKey(language))
             {
@@ -404,7 +402,7 @@ namespace xdelta3_cross_gui
             }
 
             CultureInfo.CurrentUICulture = new CultureInfo(Localizer.Languages[language]);
-            Options.Language = language;
+            Config.Language = language;
             Localizer.Instance.LoadLanguage();
         }
         #endregion
@@ -412,50 +410,50 @@ namespace xdelta3_cross_gui
         #region private
         private void BindUI()
         {
-            this.Title = TITLE;
+            Title = TITLE;
 
             // Bindings
-            this.btn_ToggleAllOldFilesSelection.Click += ToggleAllOldFilesSelectionClicked;
-            this.btn_ToggleAllNewFilesSelection.Click += ToggleAllNewFilesSelectionClicked;
-            this.btn_AddOld.Click += AddOldFileClicked;
-            this.btn_UpOld.Click += MoveOldFileUpClicked;
-            this.btn_DownOld.Click += MoveOldFileDownClicked;
-            this.btn_DeleteOld.Click += DeleteOldFilesClicked;
-            this.btn_AddNew.Click += AddNewFileClicked;
-            this.btn_UpNew.Click += MoveNewFileUpClicked;
-            this.btn_DownNew.Click += MoveNewFileDownClicked;
-            this.btn_DeleteNew.Click += DeleteNewFilesClicked;
-            this.btn_SaveSettings.Click += SaveSettingsClicked;
-            this.btn_ResetDefaults.Click += ResetDefaultsClicked;
-            this.btn_OpenInfo.Click += OpenInfoClicked;
-            this.btn_Go.Click += GoClicked;
-            this.btn_BrowsePathDestination.Click += BrowseOutputDirectory;
-            this.chk_UseShortNames.Click += UseShortNamesChecked;
-            this.cb_LanguageOptions.SelectionChanged += ChangeLanguageSelection;
+            btn_ToggleAllOldFilesSelection.Click += ToggleAllOldFilesSelectionClicked;
+            btn_ToggleAllNewFilesSelection.Click += ToggleAllNewFilesSelectionClicked;
+            btn_AddOld.Click += AddOldFileClicked;
+            btn_UpOld.Click += MoveOldFileUpClicked;
+            btn_DownOld.Click += MoveOldFileDownClicked;
+            btn_DeleteOld.Click += DeleteOldFilesClicked;
+            btn_AddNew.Click += AddNewFileClicked;
+            btn_UpNew.Click += MoveNewFileUpClicked;
+            btn_DownNew.Click += MoveNewFileDownClicked;
+            btn_DeleteNew.Click += DeleteNewFilesClicked;
+            btn_ResetDefaults.Click += ResetDefaultsClicked;
+            btn_OpenInfo.Click += OpenInfoClicked;
+            btn_Go.Click += GoClicked;
+            btn_BrowsePathDestination.Click += BrowseOutputDirectory;
+            chk_UseShortNames.Click += UseShortNamesChecked;
+            cb_LanguageOptions.SelectionChanged += ChangeLanguageSelection;
 
-            this.sv_OldFilesDisplay.AddHandler(DragDrop.DropEvent, OldFilesDropped);
-            this.sv_NewFilesDisplay.AddHandler(DragDrop.DropEvent, NewFilesDropped);
+            sv_OldFilesDisplay.AddHandler(DragDrop.DropEvent, OldFilesDropped);
+            sv_NewFilesDisplay.AddHandler(DragDrop.DropEvent, NewFilesDropped);
         }
         private void Configure()
         {
-            this.EqualFileCount = false;
-            this.AlreadyBusy = false;
-            this.PatchProgressIsIndeterminate = false;
-            this.OldFilesListCount = 0;
-            this.NewFilesListCount = 0;
+            EqualFileCount = false;
+            AlreadyBusy = false;
+            PatchProgressIsIndeterminate = false;
+            OldFilesListCount = 0;
+            NewFilesListCount = 0;
 
             Localizer.Instance.PropertyChanged += Language_Changed;
 
-            this.Options.LoadSaved();
-            this.SetXDeltaLocations();
+            CreateDirectories();
+            Config.LoadSaved();
+            SetXDeltaLocations();
 
-            this.LoadLanguageOptions();
+            LoadLanguageOptions();
 
-            this.ChangeLanguage(Options.Language);
-            this.MatchSelectedLanguage();
+            ChangeLanguage(Config.Language);
+            MatchSelectedLanguage();
 
-            this.Console.SetParent(this);
-            this.CheckForUpdates();
+            Console.SetParent(this);
+            CheckForUpdates();
         }
 
         private void Language_Changed(object? sender, PropertyChangedEventArgs e)
@@ -466,28 +464,28 @@ namespace xdelta3_cross_gui
 
         private void CheckFileCounts()
         {
-            if (this.OldFilesList.Count != this.NewFilesList.Count || this.OldFilesList.Count == 0)
+            if (OldFilesList.Count != NewFilesList.Count || OldFilesList.Count == 0)
             {
-                this.EqualFileCount = false;
+                EqualFileCount = false;
             }
             else
             {
-                this.EqualFileCount = true;
+                EqualFileCount = true;
             }
-            this.OldFilesListCount = this.OldFilesList.Count;
-            this.NewFilesListCount = this.NewFilesList.Count;
+            OldFilesListCount = OldFilesList.Count;
+            NewFilesListCount = NewFilesList.Count;
         }
         private void AddFiles(string[] urls, FileCategory version)
         {
-            List<PathFileComponent> filesList = this.NewFilesList;
+            List<PathFileComponent> filesList = NewFilesList;
 
             if (version == FileCategory.New)
             {
-                filesList = this.NewFilesList;
+                filesList = NewFilesList;
             }
             else if (version == FileCategory.Old)
             {
-                filesList = this.OldFilesList;
+                filesList = OldFilesList;
             }
 
             if (urls?.Length > 0)
@@ -496,14 +494,14 @@ namespace xdelta3_cross_gui
                 {
                     filesList.Add(new PathFileComponent(this, path, filesList.Count, version));
                 }
-                this.ReloadFiles(version);
-                this.CheckFileCounts();
+                ReloadFiles(version);
+                CheckFileCounts();
 
                 if (version == FileCategory.New)
                 {
-                    if (this.Options.PatchFileDestination == "")
+                    if (Config.PatchFileDestination == "")
                     {
-                        this.Options.PatchFileDestination = Path.Combine(Path.GetDirectoryName(this.NewFilesList[0].FullPath), "xDelta3_Output");
+                        Config.PatchFileDestination = Path.Combine(Path.GetDirectoryName(NewFilesList[0].FullPath) ?? "", "xDelta3_Output");
                     }
                 }
             }
@@ -511,29 +509,29 @@ namespace xdelta3_cross_gui
 
         private void HandleFileDrop(DragEventArgs args, FileCategory fileCategory)
         {
-            if (args.Data.Contains(DataFormats.Files))
+            if (args.DataTransfer.Contains(DataFormat.File))
             {
-                List<String> url = args.Data?.GetFiles()?.Select(f => f.Path.AbsolutePath).ToList() ?? new();
-                this.AddFiles(url.ToArray(), fileCategory);
+                List<String> urls = args.DataTransfer.TryGetFiles()?.Select(f => Uri.UnescapeDataString(f.Path.AbsolutePath)).Where(f => File.Exists(f)).ToList() ?? [];
+                AddFiles(urls.ToArray(), fileCategory);
             }
         }
 
         private void MoveFilesUp(FileCategory category)
         {
-            List<PathFileComponent> list = this.NewFilesList;
+            List<PathFileComponent> list = NewFilesList;
             if (category == FileCategory.New)
             {
-                list = this.NewFilesList;
+                list = NewFilesList;
             }
             else if (category == FileCategory.Old)
             {
-                list = this.OldFilesList;
+                list = OldFilesList;
             }
 
             List<PathFileComponent> selectedList = list.FindAll(c => c.IsSelected == true);
-			if (selectedList.Count > 0)
-			{
-                this.SortListInPlaceByIndex(selectedList);
+            if (selectedList.Count > 0)
+            {
+                SortListInPlaceByIndex(selectedList);
                 for (int i = 0; i < selectedList.Count; i++)
                 {
                     PathFileComponent component = selectedList[i];
@@ -543,28 +541,28 @@ namespace xdelta3_cross_gui
                         list[list.IndexOf(component) - 1].Index++;
                         component.Index--;
                         component._Shifted = true;
-                        this.SortListInPlaceByIndex(list);
+                        SortListInPlaceByIndex(list);
                     }
                 }
-                this.ReloadFiles(category, true);
+                ReloadFiles(category, true);
             }
         }
         private void MoveFilesDown(FileCategory category)
         {
-            List<PathFileComponent> list = this.NewFilesList;
+            List<PathFileComponent> list = NewFilesList;
             if (category == FileCategory.New)
             {
-                list = this.NewFilesList;
+                list = NewFilesList;
             }
             else if (category == FileCategory.Old)
             {
-                list = this.OldFilesList;
+                list = OldFilesList;
             }
 
             List<PathFileComponent> selectedList = list.FindAll(c => c.IsSelected == true);
             if (selectedList.Count > 0)
             {
-                this.SortListInPlaceByIndex(selectedList);
+                SortListInPlaceByIndex(selectedList);
                 for (int i = selectedList.Count - 1; i >= 0; i--)
                 {
                     PathFileComponent component = selectedList[i];
@@ -574,22 +572,22 @@ namespace xdelta3_cross_gui
                         list[list.IndexOf(component) + 1].Index--;
                         component.Index++;
                         component._Shifted = true;
-                        this.SortListInPlaceByIndex(list);
+                        SortListInPlaceByIndex(list);
                     }
                 }
-                this.ReloadFiles(category, true);
+                ReloadFiles(category, true);
             }
         }
         private void DeleteFiles(FileCategory category)
         {
-            List<PathFileComponent> list = this.NewFilesList;
+            List<PathFileComponent> list = NewFilesList;
             if (category == FileCategory.New)
             {
-                list = this.NewFilesList;
+                list = NewFilesList;
             }
             else if (category == FileCategory.Old)
             {
-                list = this.OldFilesList;
+                list = OldFilesList;
             }
 
             try
@@ -599,26 +597,26 @@ namespace xdelta3_cross_gui
                 {
                     list.Remove(component);
                 }
-                this.ReloadFiles(category, true);
+                ReloadFiles(category, true);
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e);
             }
-            this.CheckFileCounts();
+            CheckFileCounts();
 
             if (category == FileCategory.New)
             {
-                if (this.NewFilesListCount == 0)
+                if (NewFilesListCount == 0)
                 {
-                    this._AllNewFilesSelected = false;
+                    _AllNewFilesSelected = false;
                 }
             }
             else if (category == FileCategory.Old)
             {
-                if (this.OldFilesListCount == 0)
+                if (OldFilesListCount == 0)
                 {
-                    this._AllOldFilesSelected = false;
+                    _AllOldFilesSelected = false;
                 }
             }
         }
@@ -628,13 +626,13 @@ namespace xdelta3_cross_gui
             {
                 if (_AllNewFilesSelected)
                 {
-                    this.NewFilesList.ForEach(c => c.IsSelected = false);
-                    this._AllNewFilesSelected = false;
+                    NewFilesList.ForEach(c => c.IsSelected = false);
+                    _AllNewFilesSelected = false;
                 }
                 else
                 {
-                    this.NewFilesList.ForEach(c => c.IsSelected = true);
-                    this._AllNewFilesSelected = true;
+                    NewFilesList.ForEach(c => c.IsSelected = true);
+                    _AllNewFilesSelected = true;
                 }
                 ReloadFiles(FileCategory.New, true);
             }
@@ -642,13 +640,13 @@ namespace xdelta3_cross_gui
             {
                 if (_AllOldFilesSelected)
                 {
-                    this.OldFilesList.ForEach(c => c.IsSelected = false);
-                    this._AllOldFilesSelected = false;
+                    OldFilesList.ForEach(c => c.IsSelected = false);
+                    _AllOldFilesSelected = false;
                 }
                 else
                 {
-                    this.OldFilesList.ForEach(c => c.IsSelected = true);
-                    this._AllOldFilesSelected = true;
+                    OldFilesList.ForEach(c => c.IsSelected = true);
+                    _AllOldFilesSelected = true;
                 }
                 ReloadFiles(FileCategory.Old, true);
             }
@@ -656,24 +654,27 @@ namespace xdelta3_cross_gui
 
         private void LoadLanguageOptions()
         {
-            List<ComboBoxItem> items = new List<ComboBoxItem>();
+            List<ComboBoxItem> items = [];
             foreach (string language in Localizer.Languages.Keys)
             {
-                ComboBoxItem item = new ComboBoxItem();
-                item.Content = language;
+                ComboBoxItem item = new()
+                {
+                    Content = language
+                };
                 items.Add(item);
             }
             cb_LanguageOptions.ItemsSource = items;
         }
         private void ChangeLanguageSelection(object? sender, SelectionChangedEventArgs e)
         {
-            string language = (string)((ComboBoxItem)cb_LanguageOptions.SelectedItem).Content;
+            string? language = ((ComboBoxItem?)cb_LanguageOptions.SelectedItem)?.Content as string;
             ChangeLanguage(language);
+            Config.SaveCurrent();
         }
         private void MatchSelectedLanguage()
         {
             var items = cb_LanguageOptions.Items;
-            int index = items.Cast<ComboBoxItem>().ToList().FindIndex(item => (string)item.Content == Options.Language);
+            int index = items.Cast<ComboBoxItem>().ToList().FindIndex(item => (string?)item.Content == Config.Language);
             cb_LanguageOptions.SelectedIndex = index;
         }
 
@@ -686,7 +687,7 @@ namespace xdelta3_cross_gui
                 string newVer = await response.Content.ReadAsStringAsync();
                 if (newVer.Trim() != VERSION.Trim())
                 {
-                    UpdateDialog updateDialog = new UpdateDialog(this, newVer);
+                    UpdateDialog updateDialog = new(newVer);
                     updateDialog.Show();
                     updateDialog.Activate();
                 }
@@ -713,39 +714,37 @@ namespace xdelta3_cross_gui
             return version;
         }
 
-        private async Task<string[]> OpenFileBrowser()
+        private async Task<string[]?> OpenFileBrowser()
         {
-            var dialog = new OpenFileDialog()
+            return (await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 Title = "Select file(s)",
-                AllowMultiple = true,
-            };
-            return await dialog.ShowAsync(GetWindow());
+                AllowMultiple = true
+            })).Select(file => Uri.UnescapeDataString(file.Path.AbsolutePath)).Where(f => File.Exists(f)).ToArray();
         }
-        private async Task<string> OpenFolderBrowser()
+
+        private async Task<string?> OpenFolderBrowser()
         {
-            var dialog = new OpenFolderDialog()
+            return (await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
-                Title = "Select output directory",
-
-            };
-            return await dialog.ShowAsync(GetWindow());
+                Title = "Select output directory"
+            })).Select(folder => Uri.UnescapeDataString(folder.Path.AbsolutePath)).Where(f => Directory.Exists(f)).FirstOrDefault();
         }
 
-        Window GetWindow() => (Window)this.VisualRoot;
+        Window? GetWindow() => VisualRoot as Window;
 
         private void SetXDeltaLocations()
         {
-            this.XDeltaOnSystemPath = false;
+            XDeltaOnSystemPath = false;
 
             if (File.Exists("xdelta3"))
             {
                 XDELTA3_PATH = Path.GetFullPath("xdelta3");
-                this.XDeltaOnSystemPath = true;
+                XDeltaOnSystemPath = true;
             }
 
             var values = Environment.GetEnvironmentVariable("PATH");
-            foreach (var path in values.Split(Path.PathSeparator))
+            foreach (var path in values?.Split(Path.PathSeparator) ?? [])
             {
                 var fullPath = Path.Combine(path, "xdelta3");
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -755,11 +754,11 @@ namespace xdelta3_cross_gui
                 if (File.Exists(fullPath))
                 {
                     XDELTA3_PATH = fullPath;
-                    this.XDeltaOnSystemPath = true;
+                    XDeltaOnSystemPath = true;
                 }
             }
 
-            if (!this.XDeltaOnSystemPath)
+            if (!XDeltaOnSystemPath)
             {
                 string location = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "exec");
 
@@ -777,18 +776,47 @@ namespace xdelta3_cross_gui
                 }
             }
         }
+
+        private void CreateDirectories()
+        {
+            try
+            {
+                if (!Directory.Exists(MainWindow.XDELTA3_APP_STORAGE))
+                {
+#if MacOS
+                    var oldLocalAppData = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify), ".local/share/xdelta3-cross-gui");
+
+                    if (Directory.Exists(oldLocalAppData))
+                    {
+                        Directory.Move(oldLocalAppData, MainWindow.XDELTA3_APP_STORAGE);
+                    }
+                    else
+                    {
+                         Directory.CreateDirectory(MainWindow.XDELTA3_APP_STORAGE);
+                    }
+#else
+                    Directory.CreateDirectory(MainWindow.XDELTA3_APP_STORAGE);
+#endif
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
+        }
         #endregion
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        new public event PropertyChangedEventHandler? PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         protected override void OnClosing(WindowClosingEventArgs e)
         {
-            this.Console.CanClose = true;
-            this.Console.Close();
+            Console.CanClose = true;
+            Console.Close();
+            PatchCreator.Instance.OnClosing();
             base.OnClosing(e);
         }
 

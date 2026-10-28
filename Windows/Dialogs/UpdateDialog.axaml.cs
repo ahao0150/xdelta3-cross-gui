@@ -1,4 +1,4 @@
-﻿/*Copyright 2020-2023 dan0v
+﻿/*Copyright 2020-2026 dan0v
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@ limitations under the License.*/
 
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using System;
 using System.Diagnostics;
 using xdelta3_cross_gui.Localization;
@@ -23,32 +22,35 @@ namespace xdelta3_cross_gui
 {
     public partial class UpdateDialog : Window
     {
-        private MainWindow MainParent;
-        private string newVersion = "";
+        private readonly string _NewVersion = "";
 
-        public UpdateDialog(MainWindow MainParent, string newVersion)
+        public UpdateDialog()
         {
-            this.InitializeComponent();
-            this.MainParent = MainParent;
-            this.newVersion = newVersion;
-            this.Configure();
+            InitializeComponent();
+        }
+
+        public UpdateDialog(string newVersion)
+        {
+            InitializeComponent();
+            _NewVersion = newVersion;
+            Configure();
         }
         private void Configure()
         {
-            this.btn_Dismiss.Click += DismissClicked;
-            this.btn_GoToReleases.Click += GoToReleasesClicked;
-            this.txt_blk_Prompt.Text = string.Format(Localizer.Instance["NewVersionText"], newVersion);
+            btn_Dismiss.Click += DismissClicked;
+            btn_GoToReleases.Click += GoToReleasesClicked;
+            txt_blk_Prompt.Text = string.Format(Localizer.Instance["NewVersionText"], _NewVersion);
         }
 
         private void DismissClicked(object? sender, RoutedEventArgs args)
         {
-            this.Close();
+            Close();
         }
         private void GoToReleasesClicked(object? sender, RoutedEventArgs args)
         {
             try
             {
-                ProcessStartInfo url = new ProcessStartInfo
+                ProcessStartInfo url = new()
                 {
                     FileName = MainWindow.RELEASES_PAGE,
                     UseShellExecute = true

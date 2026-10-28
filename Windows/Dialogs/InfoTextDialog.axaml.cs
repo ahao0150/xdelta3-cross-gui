@@ -1,4 +1,4 @@
-﻿/*Copyright 2020-2023 dan0v
+﻿/*Copyright 2020-2026 dan0v
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@ limitations under the License.*/
 
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using System;
 using System.IO;
 
@@ -30,14 +29,14 @@ namespace xdelta3_cross_gui
 
         public InfoTextDialog()
         {
-            this.InitializeComponent();
-            this.Configure();
+            InitializeComponent();
+            Configure();
         }
 
         public InfoTextDialog(InfoTextType infoType)
         {
-            this.InitializeComponent();
-            this.Configure();
+            InitializeComponent();
+            Configure();
 
             try
             {
@@ -46,30 +45,30 @@ namespace xdelta3_cross_gui
                 {
                     case InfoTextType.LICENSE:
                         path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, MainWindow.LICENSE_FILE);
-                        this.txt_blk_Info.TextWrapping = Avalonia.Media.TextWrapping.NoWrap;
-                        this.txt_blk_Info.TextTrimming = Avalonia.Media.TextTrimming.WordEllipsis;
-                        this.Title = "License";
+                        txt_blk_Info.TextWrapping = Avalonia.Media.TextWrapping.NoWrap;
+                        txt_blk_Info.TextTrimming = Avalonia.Media.TextTrimming.WordEllipsis;
+                        Title = "License";
                         break;
                     case InfoTextType.NOTICE:
                         path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, MainWindow.NOTICE_FILE);
-                        this.txt_blk_Info.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
-                        this.Title = "Notice";
+                        txt_blk_Info.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
+                        Title = "Notice";
                         break;
                 }
                 string content = File.ReadAllText(path);
-                this.txt_blk_Info.Text = content;
+                txt_blk_Info.Text = content;
             }
             catch { }
         }
 
         private void DismissClicked(object? sender, RoutedEventArgs args)
         {
-            this.Close();
+            Close();
         }
 
         private void Configure()
         {
-            this.btn_Dismiss.Click += DismissClicked;
+            btn_Dismiss.Click += DismissClicked;
         }
     }
 }

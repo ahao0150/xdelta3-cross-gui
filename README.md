@@ -8,7 +8,7 @@ A cross-platform GUI for creating xDelta3 patches, inspired by [Moodkiller/xdelt
 ## Features
 - Compatible with Windows, Linux, and MacOS
 - Scalable UI
-- Add old and new files to the UI with Drag and Drop (Windows and MacOS only [*upstream issue*](https://github.com/AvaloniaUI/Avalonia/issues/3502))
+- Add old and new files to the UI with Drag and Drop
 - Visual progress bar for patching
 - View or hide terminal output during patching
 - Allow for custom xDelta3 commandline arguments
@@ -40,8 +40,8 @@ The application can also be updated to new versions with `scoop update xdelta3-c
 
 ### Linux *(x86_64)*
 1. *Optionally install [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher) to integrate xDelta3 Cross GUI into your desktop environment*
-2. Download and unzip [latest Linux AppImage build](https://github.com/dan0v/xdelta3-cross-gui/releases/latest/download/xdelta3-cross-gui_linux_AppImage_x86_64.tar.gz) from the [Releases page](https://github.com/dan0v/xdelta3-cross-gui/releases/)
-3. Mark `xDelta3_Cross_Gui-x86_64.AppImage` as executable (`chmod 755 xDelta3_Cross_Gui-x86_64.AppImage`)
+2. Download the [latest Linux AppImage build](https://github.com/dan0v/xdelta3-cross-gui/releases/latest/download/xDelta3_Cross_Gui-x86_64.AppImage) from the [Releases page](https://github.com/dan0v/xdelta3-cross-gui/releases/)
+3. Mark the application as executable (`chmod 755 xDelta3_Cross_Gui-x86_64.AppImage`)
 4. Run executable (`xDelta3_Cross_Gui-x86_64.AppImage`)
 
 ### Mac *(x86_64)*

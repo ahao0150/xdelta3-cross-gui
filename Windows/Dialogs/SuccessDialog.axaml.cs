@@ -1,4 +1,4 @@
-﻿/*Copyright 2020-2023 dan0v
+﻿/*Copyright 2020-2026 dan0v
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@ limitations under the License.*/
 
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -23,34 +22,33 @@ namespace xdelta3_cross_gui
 {
     public partial class SuccessDialog : Window
     {
-        private MainWindow MainParent;
+        private readonly string _Destination = "";
 
-        private string _Destination = "";
-
-        public SuccessDialog(MainWindow MainParent)
+        public SuccessDialog()
         {
-            this.InitializeComponent();
-            this.MainParent = MainParent;
-            this.Configure();
+            InitializeComponent();
         }
-        private void Configure()
+
+        public SuccessDialog(bool zipFilesWhenDone, string PatchFileDestination)
         {
-            if (this.MainParent.Options.ZipFilesWhenDone)
+            InitializeComponent();
+
+            if (zipFilesWhenDone)
             {
-                this._Destination = Path.Combine(this.MainParent.Options.PatchFileDestination, "..");
+                _Destination = Path.Combine(PatchFileDestination, "..");
             }
             else
             {
-                this._Destination = this.MainParent.Options.PatchFileDestination;
+                _Destination = PatchFileDestination;
             }
 
-            this.btn_Dismiss.Click += DismissClicked;
-            this.btn_OpenDestination.Click += OpenDestinationClicked;
+            btn_Dismiss.Click += DismissClicked;
+            btn_OpenDestination.Click += OpenDestinationClicked;
         }
 
         private void DismissClicked(object? sender, RoutedEventArgs args)
         {
-            this.Close();
+            Close();
         }
         private void OpenDestinationClicked(object? sender, RoutedEventArgs args)
         {
@@ -58,7 +56,7 @@ namespace xdelta3_cross_gui
             {
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = this._Destination + Path.DirectorySeparatorChar,
+                    FileName = _Destination + Path.DirectorySeparatorChar,
                     UseShellExecute = true
                 });
             }

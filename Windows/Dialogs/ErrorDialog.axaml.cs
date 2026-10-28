@@ -1,4 +1,4 @@
-﻿/*Copyright 2020-2023 dan0v
+﻿/*Copyright 2020-2026 dan0v
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@ limitations under the License.*/
 
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using System.Collections.Generic;
 
 namespace xdelta3_cross_gui
@@ -27,37 +26,45 @@ namespace xdelta3_cross_gui
 
         public ErrorDialog()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
         public ErrorDialog(List<string> missingOldFiles, List<string> missingNewFiles)
         {
-            this.InitializeComponent();
+            InitializeComponent();
             this.missingNewFiles = missingNewFiles;
             this.missingOldFiles = missingOldFiles;
-            this.Configure();
+            Configure();
         }
 
         public ErrorDialog(string xDeltaFailed)
         {
-            this.InitializeComponent();
-            this.errorString = xDeltaFailed;
-            this.Configure();
+            InitializeComponent();
+            errorString = xDeltaFailed;
+            Configure();
         }
 
         private void Configure()
         {
-            this.btn_Dismiss.Click += DismissClicked;
+            btn_Dismiss.Click += DismissClicked;
 
-            if ((this.missingOldFiles?.Count ?? 0) > 0)
+            if ((missingOldFiles?.Count ?? 0) > 0)
             {
-                this.txt_blk_MissingOld.Text = string.Join("\n", missingOldFiles);
-                this.grd_MissingFiles.IsVisible = true;
+                txt_blk_MissingOld.Text = string.Join("\n", missingOldFiles ?? []);
+                grd_MissingFiles.IsVisible = true;
             }
-            if ((this.missingNewFiles?.Count ?? 0) > 0)
+            if ((missingNewFiles?.Count ?? 0) > 0)
             {
-                this.txt_blk_MissingNew.Text = string.Join("\n", missingNewFiles);
-                this.grd_MissingFiles.IsVisible = true;
+                txt_blk_MissingNew.Text = string.Join("\n", missingNewFiles ?? []);
+                grd_MissingFiles.IsVisible = true;
+            }
+            if (grd_MissingFiles.IsVisible)
+            {
+                Height = 400;
+            }
+            else
+            {
+                Height = 200;
             }
 
             if (!string.IsNullOrEmpty(errorString))
@@ -68,7 +75,7 @@ namespace xdelta3_cross_gui
 
         private void DismissClicked(object? sender, RoutedEventArgs args)
         {
-            this.Close();
+            Close();
         }
     }
 }
